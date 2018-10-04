@@ -13,7 +13,6 @@ Begin VB.Form Form1
       Height          =   615
       Left            =   240
       TabIndex        =   2
-      Text            =   "Text1"
       Top             =   240
       Width           =   1935
    End
@@ -40,12 +39,58 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Dim file As String
 Private Sub Command1_Click()
+Dim counter As Integer
+Dim n1 As Integer
+Dim n2 As Integer
+Dim class() As String
+Dim gene() As String
+Dim tvalue As String
+Dim n1array(62) As Integer
+Dim n2array(62) As Integer
+Dim output, a
+Set output = CreateObject("Scripting.Dictionary")
+
+counter = -1
+n1 = 0
+n2 = 0
+tvalue = "100"
 Open App.Path & "\" + file For Input As #1
+
 Do While Not EOF(1)
-          Line Input #1, tmpline
-          List1.AddItem tmpline
+    Line Input #1, tmpline
+    
+    'class
+    If counter = 0 Then
+        class = Split(tmpline, ",")
+        For i = 1 To 62
+            'List1.AddItem class(i)
+            If class(i) = "1" Then
+                n1array(i) = i
+                n1 = n1 + 1
+            Else
+                n2array(i) = i
+            End If
+        Next i
+        n2 = 62 - n1
+    
+    Else
+        If counter <> -1 Then
+            gene = Split(tmpline, ",")
+            output.Add gene(0), tvalue
+        End If
+    End If
+    'List1.AddItem counter
+    counter = counter + 1
 Loop
 Close #1
+
+'List1.AddItem n1
+'List1.AddItem n2
+a = output.Keys
+For i = 0 To output.Count - 1
+    List1.AddItem a(i)
+Next
+
 End Sub
 
 Private Sub Text1_Change()
