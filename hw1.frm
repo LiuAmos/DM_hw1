@@ -38,32 +38,55 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Dim file As String
+Dim m, k, p, q As Integer
+Dim tmp As Double
+
+
 Private Sub Command1_Click()
+
+'declare variable
 Dim counter As Integer
 Dim n1 As Integer
 Dim n2 As Integer
 Dim class() As String
 Dim gene() As String
-Dim tvalue As String
+Dim Dblgene(62) As Double
+Dim Egene() As String
+Dim ten As Double
 Dim n1array(62) As Integer
 Dim n2array(62) As Integer
-Dim output, a
+Dim sum1 As Double
+Dim sum2 As Double
+Dim x1 As Double
+Dim x2 As Double
+Dim vsum1 As Double
+Dim vsum2 As Double
+Dim var1 As Double
+Dim var2 As Double
+Dim t As Double
+Dim output, ke, it
+Dim outputarray(2000) As Double
 Set output = CreateObject("Scripting.Dictionary")
 
+'assign value
 counter = -1
 n1 = 0
 n2 = 0
-tvalue = "100"
+ten = 10
+
 Open App.Path & "\" + file For Input As #1
 
 Do While Not EOF(1)
     Line Input #1, tmpline
     
-    'class
+    sum1 = 0
+    sum2 = 0
+    vsum1 = 0
+    vsum2 = 0
+
     If counter = 0 Then
         class = Split(tmpline, ",")
         For i = 1 To 62
-            'List1.AddItem class(i)
             If class(i) = "1" Then
                 n1array(i) = i
                 n1 = n1 + 1
@@ -76,20 +99,78 @@ Do While Not EOF(1)
     Else
         If counter <> -1 Then
             gene = Split(tmpline, ",")
-            output.Add gene(0), tvalue
+            For i = 0 To 62
+                gene(i) = Trim(gene(i))
+                If InStr(gene(i), "E") <> 0 Then
+                    Egene = Split(gene(i), "E")
+                    Dblgene(i) = CDbl(CDbl(Egene(0)) * (ten ^ CDbl(-Right(Egene(1), 1))))
+                Else
+                    Dblgene(i) = CDbl(gene(i))
+                End If
+            Next
+            
+            For i = 1 To 62
+                If n1array(i) <> 0 Then
+                    sum1 = sum1 + Dblgene(i)
+                End If
+                
+                If n2array(i) <> 0 Then
+                    sum2 = sum2 + Dblgene(i)
+                End If
+            Next
+            
+            x1 = (sum1 / CDbl(n1))
+            x2 = (sum2 / CDbl(n2))
+            
+            For i = 1 To 62
+                If n1array(i) <> 0 Then
+                    vsum1 = vsum1 + (Dblgene(i) - x1) ^ 2
+                End If
+                
+                If n2array(i) <> 0 Then
+                    vsum2 = vsum2 + (Dblgene(i) - x2) ^ 2
+                End If
+            Next
+            
+            var1 = vsum1 / (n1 - 1)
+            var2 = vsum2 / (n2 - 1)
+            
+            t = (x1 - x2) / ((var1 / n1) + (var2 / n2)) ^ 0.5
+            
+            
+            If counter > 0 Then
+                outputarray(counter) = t
+            End If
+            output.Add CDbl(gene(0)), t
         End If
     End If
-    'List1.AddItem counter
+    
     counter = counter + 1
+    
 Loop
 Close #1
 
-'List1.AddItem n1
-'List1.AddItem n2
-a = output.Keys
-For i = 0 To output.Count - 1
-    List1.AddItem a(i)
-Next
+
+For k = 1 To 2000
+    For m = k To 2000
+        If outputarray(k) > outputarray(m) Then
+            tmp = outputarray(k)
+            outputarray(k) = outputarray(m)
+            outputarray(m) = tmp
+        End If
+    Next m
+Next k
+
+For p = 1 To 2000
+    For q = 0 To 1999
+        If output.Item(q) = outputarray(p) Then
+            List1.AddItem "Gene seq  " & CStr(q) & vbTab & "t =   " & CStr(outputarray(p))
+            
+        End If
+    Next q
+Next p
+
+
 
 End Sub
 
